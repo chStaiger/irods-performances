@@ -152,7 +152,7 @@ def cleaniRODS(collpath, client="icommands", session = None):
         print("CLEANUP: No valid client and session found.")
         return False
 
-def cleanSystem(datapath):
+def cleanupSystem(datapath):
     os.system("rm -rf "+datapath)
     return True
 
