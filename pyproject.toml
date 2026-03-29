@@ -1,0 +1,103 @@
+[build-system]
+requires = ["setuptools>=64.0.0", "setuptools-scm", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "irodsperf"
+version = "0.1.0"
+description = "Benchmark iRODS clients"
+readme = {file = "README.md", content-type = "text/markdown"}
+requires-python = ">=3.10"
+license = {file = "LICENSE"}
+
+authors = [
+    { name = "Christine Staiger", email = "c.staiger@uu.nl" }
+]
+
+keywords = ["iRODS", "performance"]
+
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+# Core runtime dependencies
+dependencies = [
+    "python-irodsclient>=3.1",
+]
+
+# Optional plotting dependencies
+[project.optional-dependencies]
+plot = [
+    "pandas>=2.2.0",
+    "numpy>=2.1.0",
+    "matplotlib>=3.9.0",
+]
+
+[project.urls]
+Repository = "https://github.com/chStaiger/irodsperf"
+Issues = "https://github.com/chStaiger/irodsperf/issues"
+
+# CLI entry point
+[project.scripts]
+irodsperf = "irodsperf.cli:main"
+
+# Package discovery (src layout)
+[tool.setuptools.packages.find]
+where = ["src"]
+
+# Ruff configuration
+[tool.ruff]
+line-length = 120
+output-format = "concise"
+extend-exclude = ["docs"]
+
+[tool.ruff.lint]
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+select = ["ALL"]
+ignore = [
+    "ANN101",
+    "ANN102",
+    "ANN204",
+    "FBT",
+    "TD",
+    "FIX001",
+    "FIX002",
+    "B028",
+    "D100",
+    "D104",
+    "D105",
+    "D107",
+]
+pydocstyle.convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**.py" = [
+    "ANN201",
+    "PT011",
+    "S101",
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["irodsperf"]
+force-single-line = true
+no-lines-before = ["future","standard-library","third-party","first-party","local-folder"]
+
+# Version bumping
+[tool.bumpversion]
+current_version = "0.1.0"
+
+[[tool.bumpversion.files]]
+filename = "src/irodsperf/__init__.py"
+
+[[tool.bumpversion.files]]
+filename = "pyproject.toml"
+
+[[tool.bumpversion.files]]
+filename = "CITATION.cff"
