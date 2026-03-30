@@ -1,44 +1,173 @@
-## Badges
+# irodsperf
 
-(Customize these badges with your own links, and check https://shields.io/ or https://badgen.net/ to see which other badges are available.)
+This project provides an automated framework for benchmarking data‑ingestion performance into iRODS using three different clients: **iCommands**, **python‑irodsclient**, and **WebDAV**. The goal is to measure how efficiently each protocol handles both large files and large numbers of small files under identical conditions.
 
-| fair-software.eu recommendations | |
-| :-- | :--  |
-| (1/5) code repository              | [![github repo badge](https://img.shields.io/badge/github-repo-000.svg?logo=github&labelColor=gray&color=blue)](https://github.com/chStaiger/irodsperf) |
-| (2/5) license                      | [![github license badge](https://img.shields.io/github/license/chStaiger/irodsperf)](https://github.com/chStaiger/irodsperf) |
-| (3/5) community registry           | [![RSD](https://img.shields.io/badge/rsd-irodsperf-00a3e3.svg)](https://www.research-software.nl/software/irodsperf) [![workflow pypi badge](https://img.shields.io/pypi/v/irodsperf.svg?colorB=blue)](https://pypi.python.org/project/irodsperf/) |
-| (4/5) citation                     | [![DOI](https://zenodo.org/badge/DOI/<replace-with-created-DOI>.svg)](https://doi.org/<replace-with-created-DOI>)|
-| (5/5) checklist                    | [![workflow cii badge](https://bestpractices.coreinfrastructure.org/projects/<replace-with-created-project-identifier>/badge)](https://bestpractices.coreinfrastructure.org/projects/<replace-with-created-project-identifier>) |
-| howfairis                          | [![fair-software badge](https://img.shields.io/badge/fair--software.eu-%E2%97%8F%20%20%E2%97%8F%20%20%E2%97%8F%20%20%E2%97%8F%20%20%E2%97%8B-yellow)](https://fair-software.eu) |
-| **Other best practices**           | &nbsp; |
-| Static analysis                    | [![workflow scq badge](https://sonarcloud.io/api/project_badges/measure?project=chStaiger_irodsperf&metric=alert_status)](https://sonarcloud.io/dashboard?id=chStaiger_irodsperf) |
-| Coverage                           | [![workflow scc badge](https://sonarcloud.io/api/project_badges/measure?project=chStaiger_irodsperf&metric=coverage)](https://sonarcloud.io/dashboard?id=chStaiger_irodsperf) || Documentation                      | [![Documentation Status](https://readthedocs.org/projects/irodsperf/badge/?version=latest)](https://irodsperf.readthedocs.io/en/latest/?badge=latest) || **GitHub Actions**                 | &nbsp; |
-| Build                              | [![build](https://github.com/chStaiger/irodsperf/actions/workflows/build.yml/badge.svg)](https://github.com/chStaiger/irodsperf/actions/workflows/build.yml) |
-| Citation data consistency          | [![cffconvert](https://github.com/chStaiger/irodsperf/actions/workflows/cffconvert.yml/badge.svg)](https://github.com/chStaiger/irodsperf/actions/workflows/cffconvert.yml) || SonarCloud                         | [![sonarcloud](https://github.com/chStaiger/irodsperf/actions/workflows/sonarcloud.yml/badge.svg)](https://github.com/chStaiger/irodsperf/actions/workflows/sonarcloud.yml) |## How to use irodsperf
+## Installation and configuration
 
-Benchmark iRODS clients
+To run the benchmarking framework, three clients must be configured correctly: **iCommands**, **python‑irodsclient**, and **WebDAV (`cadaver`)**. All clients must authenticate to the same iRODS account and operate inside the same home collection.
 
-The project setup is documented in [project_setup.md](project_setup.md). Feel free to remove this document (and/or the link to this document) if you don't need it.
+### 1. iCommands Configuration
 
-## Installation
+The framework reads connection details from your standard iRODS environment file:
 
-To install irodsperf from GitHub repository, do:
-
-```console
-git clone git@github.com:chStaiger/irodsperf.git
-cd irodsperf
-python -m pip install .
+```
+~/.irods/irods_environment.json
 ```
 
-## Documentation
+This file **must** include two additional fields:
 
-Include a link to your project's full documentation here.
+- `irods_home` – your iRODS home collection  
+- `irods_password` – used by python‑irodsclient for non‑interactive authentication  
 
-## Contributing
+These settings are used by **both** iCommands and python‑irodsclient.
 
-If you want to contribute to the development of irodsperf,
-have a look at the [contribution guidelines](CONTRIBUTING.md).
 
-## Credits
+### 2. python‑irodsclient
 
-This package was created with [Copier](https://github.com/copier-org/copier) and the [NLeSC/python-template](https://github.com/NLeSC/python-template).
+Install:
+
+```bash
+pip install python-irodsclient
+```
+
+The framework creates sessions using:
+
+- all SSL and connection settings from `irods_environment.json`
+- the password stored in the same file
+
+You will need an `irods_environment.json` as described above.
+
+
+### 3. WebDAV (`cadaver`)
+
+The WebDAV endpoint must point to the **project root**, not your iRODS home.  
+
+Create a `~/.cadaverrc` file:
+
+```
+open https://irodswebdavendpoint/homepath/
+username USER
+password USER_PW
+```
+
+This allows the framework to run `cadaver` non‑interactively.
+
+### Verify:
+
+```bash
+cadaver https://irodswebdavendpoint/homepath
+dav:/homepath/> ls
+```
+
+## iRODS Data and local data
+
+All clients operate on the same iRODS collection:
+
+```
+perfTest
+```
+
+The framework:
+
+- creates it if needed  
+- empties it before each upload batch  
+- removes it after each client completes its tests  
+
+The local temporary data files are created according input parameters and are removed automatically
+No manual cleanup is required.
+
+## ▶️  Usage (Python)
+
+The benchmarking framework is designed to be run directly from Python.
+The main entry point is:
+
+```python
+run_all_tests(
+    clients,
+    large_sizes,
+    num_small,
+    small_size,
+    output_file,
+    datafolder,
+)
+```
+
+This function:
+
+- validates all clients
+- prepares the `perfTest` collection
+- generates test data (large + small files)
+- runs all upload benchmarks
+- records timing results
+- writes them to a pickle file
+
+
+### Basic example
+
+```python
+from irodsperf.orchestrator import run_all_tests
+
+run_all_tests(
+    ["python"],          # clients to test
+    large_sizes=[1, 2],  # large file sizes in GB
+    num_small=10,        # number of small files
+    small_size=64,       # size of each small file in KB
+    output_file="test.pkl",
+    datafolder="test",
+)
+```
+
+This runs:
+
+- python‑irodsclient tests only
+- one large file of 1 GB
+- ten small files of 64 KB
+- results saved to `test.pkl`
+- temporary test data stored in `test/`
+
+### Running multiple clients
+
+```python
+run_all_tests(
+    ["python", "icommands", "webdav"],
+    large_sizes=[1, 5],
+    num_small=4000,
+    small_size=512,
+    output_file="results.pkl",
+    datafolder="data",
+)
+```
+
+This will benchmark:
+
+- python‑irodsclient
+- iCommands
+- WebDAV (`cadaver`)
+
+using:
+
+- 1 GB and 5 GB large files
+- 4000 small files of 512 KB
+
+
+### Output
+
+`run_all_tests()` returns a structured results dictionary and also writes it to disk:
+
+```python
+results = run_all_tests(...)
+print(results["python"]["large"])
+```
+
+The pickle file contains:
+
+- per‑client timings
+- per‑file timings
+- checksum vs non‑checksum modes
+- summary statistics
+
+
+### Cleanup
+
+All temporary collections (`perfTest`) and temporary data files are removed automatically after each run.
+

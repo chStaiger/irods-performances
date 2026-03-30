@@ -177,14 +177,18 @@ def run_all_tests(
         elif client == "python":
             print("Running python-irodsclient tests…")
 
-            check_irods_environment()
+            env_path = check_irods_environment()
             test_python_irods_connection()
 
             session = python_session_from_env()
-            collpath = f"/{session.zone}/home/{session.username}/perfTest"
-
-            ensure_perftest_collection(client, collpath)
-            reset_perftest_collection(client, collpath)
+            if session.get_irods_env(env_path).get("irods_home"):
+                home = session.get_irods_env(env_path).get("irods_home")
+                collpath = f"{home}/perfTest"
+            else:
+                collpath = f"/{session.zone}/home/{session.username}/perfTest"
+            print(f"Uploading to {collpath}")
+            ensure_perftest_collection(client, collpath, session)
+            reset_perftest_collection(client, collpath, session)
 
             # ---- Run 1: without checksum ----
             for f in large_files:
