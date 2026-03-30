@@ -2,6 +2,10 @@
 
 This project provides an automated framework for benchmarking data‑ingestion performance into iRODS using three different clients: **iCommands**, **python‑irodsclient**, and **WebDAV**. The goal is to measure how efficiently each protocol handles both large files and large numbers of small files under identical conditions.
 
+![Performance test](figures/PerformanceTestSetup.png)
+
+The figure above describes the server setup for the performance tests with the webdav protocol and the native iRODS client `icommands`.
+
 ## Installation and configuration
 
 To run the benchmarking framework, three clients must be configured correctly: **iCommands**, **python‑irodsclient**, and **WebDAV (`cadaver`)**. All clients must authenticate to the same iRODS account and operate inside the same home collection.
@@ -76,7 +80,7 @@ The framework:
 The local temporary data files are created according input parameters and are removed automatically
 No manual cleanup is required.
 
-## ▶️  Usage (Python)
+## Usage (Python)
 
 The benchmarking framework is designed to be run directly from Python.
 The main entry point is:
