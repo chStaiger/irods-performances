@@ -156,11 +156,14 @@ using:
 
 ### Output
 
-`run_all_tests()` returns a structured results dictionary and also writes it to disk:
+`run_all_tests()` writes the results it to disk:
 
 ```python
 results = run_all_tests(...)
-print(results["python"]["large"])
+
+import pickle
+pkl_file = open("test.pkl",'rb')
+results = pickle.load(pkl_file)
 ```
 
 The pickle file contains:

@@ -156,18 +156,18 @@ def run_all_tests(
                 result = upload_icommands(f, collpath, checksum=False)
                 results.append(result)
 
-            for f in small_files:
-                result = upload_icommands(f, collpath, checksum=False)
-                results.append(result)
+            # Upload folder with small files
+            result = upload_icommands(small_dir, collpath, checksum=False, recursive = True)
+            results.append(result)
 
             # ---- Run 2: with checksum ----
             for f in large_files:
                 result = upload_icommands(f, collpath, checksum=True)
                 results.append(result)
 
-            for f in small_files:
-                result = upload_icommands(f, collpath, checksum=True)
-                results.append(result)
+            # Upload folder with small files
+            result = upload_icommands(small_dir, collpath, checksum=True, recursive = True)
+            results.append(result)
 
             cleanup_irods(collpath, "icommands")
 
@@ -195,18 +195,16 @@ def run_all_tests(
                 result = upload_python(f, collpath, session, checksum=False)
                 results.append(result)
 
-            for f in small_files:
-                result = upload_python(f, collpath, session, checksum=False)
-                results.append(result)
+            result = upload_python(small_dir, collpath, session, checksum=False, recursive = True)
+            results.append(result)
 
             # ---- Run 2: with checksum ----
             for f in large_files:
                 result = upload_python(f, collpath, session, checksum=True)
                 results.append(result)
 
-            for f in small_files:
-                result = upload_python(f, collpath, session, checksum=True)
-                results.append(result)
+            result = upload_python(small_dir, collpath, session, checksum=True, recursive = True)
+            results.append(result)
 
             cleanup_irods(collpath, "python", session=session)
 
@@ -229,9 +227,8 @@ def run_all_tests(
                 result = upload_webdav(f, collpath)
                 results.append(result)
 
-            for f in small_files:
-                result = upload_webdav(f, collpath)
-                results.append(result)
+            result = upload_webdav(small_dir, collpath)
+            results.append(result)
 
             cleanup_irods(collpath, "cadaver")
 
