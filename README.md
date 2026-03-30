@@ -182,6 +182,8 @@ All temporary collections (`perfTest`) and temporary data files are removed auto
 ## Usage (CLI)
 
 ```
+pip install .
+
 irodsperf
 usage: irodsperf [-h] [--all] [--clients CLIENTS [CLIENTS ...]]
                  [--sizes SIZES [SIZES ...]] [--small-files SMALL_FILES]
