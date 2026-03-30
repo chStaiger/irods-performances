@@ -173,6 +173,7 @@ The pickle file contains:
 - checksum vs non‑checksum modes
 - summary statistics
 
+Plot the results with `plots.py`.
 
 ### Cleanup
 

@@ -17,7 +17,7 @@ df["size"] = (
 )
 
 # Identify small files (no size match → small batch)
-df["size"] = df["size"].fillna("small")
+df["size"] = df["size"].fillna("Folder")
 
 # Normalize checksum labels
 df["checksum"] = df["checksum"].map({True: "-K", False: ""})
