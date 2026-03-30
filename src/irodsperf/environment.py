@@ -135,3 +135,93 @@ def check_irods_environment(envfile: Optional[str] = None) -> None:
             f"iRODS environment file {env_path} is missing required fields: {', '.join(missing)}"
         )
 
+# -----------------------------
+# Cadaver (WebDAV) checks
+# -----------------------------
+
+def check_cadaver() -> None:
+    """Verify that the cadaver WebDAV client is installed."""
+    if not _command_exists("cadaver"):
+        raise EnvironmentError(
+            "Cadaver (WebDAV client) is not installed. Install it via your package manager."
+        )
+
+
+def check_cadaver_credentials(
+    netrc_path: Optional[str] = None,
+    cadaverrc_path: Optional[str] = None,
+) -> None:
+    """
+    Validate that ~/.netrc and ~/.cadaverrc exist and contain the required
+    WebDAV credentials and endpoint configuration.
+    """
+    netrc = Path(netrc_path or Path.home() / ".netrc")
+    cadaverrc = Path(cadaverrc_path or Path.home() / ".cadaverrc")
+
+    # Check existence
+    if not netrc.exists():
+        raise EnvironmentError(
+            f"Cadaver requires a ~/.netrc file with WebDAV credentials. Missing: {netrc}"
+        )
+
+    if not cadaverrc.exists():
+        raise EnvironmentError(
+            f"Cadaver requires a ~/.cadaverrc file specifying the WebDAV endpoint. Missing: {cadaverrc}"
+        )
+
+    # Validate .netrc content
+    content = netrc.read_text()
+    if "login" not in content or "password" not in content:
+        raise EnvironmentError(
+            f"{netrc} does not contain valid WebDAV login/password entries."
+        )
+
+    # Validate .cadaverrc content
+    cadaverrc_content = cadaverrc.read_text()
+    if "http" not in cadaverrc_content:
+        raise EnvironmentError(
+            f"{cadaverrc} does not contain a valid WebDAV URL (expected something like 'http://host:port/path')."
+        )
+
+def test_cadaver_connection(url: str | None = None) -> None:
+    """
+    Attempt a real WebDAV connection using cadaver by issuing a harmless 'ls' command.
+    If no URL is provided, the function attempts to read it from ~/.cadaverrc.
+    """
+    check_cadaver()  # ensure cadaver is installed
+
+    # If no URL is provided, try to load it from ~/.cadaverrc
+    if url is None:
+        cadaverrc = Path.home() / ".cadaverrc"
+        if not cadaverrc.exists():
+            raise EnvironmentError(
+                "No URL provided and ~/.cadaverrc not found. "
+                "Provide a URL or create a .cadaverrc with an 'open <url>' line."
+            )
+
+        # Parse the URL from the 'open' line
+        for line in cadaverrc.read_text().splitlines():
+            line = line.strip()
+            if line.startswith("open "):
+                url = line.split(" ", 1)[1].strip()
+                break
+
+        if url is None:
+            raise EnvironmentError(
+                f"~/.cadaverrc exists but contains no 'open <url>' line:\n{cadaverrc}"
+            )
+
+    # Perform a real connection test
+    proc = subprocess.run(
+        ["cadaver", url],
+        input="ls\nquit\n",
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+
+    if proc.returncode != 0:
+        raise EnvironmentError(
+            f"Cadaver could not connect to {url}.\n"
+            f"Output:\n{proc.stdout}\nErrors:\n{proc.stderr}"
+        )
