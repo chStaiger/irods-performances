@@ -179,3 +179,48 @@ Plot the results with `plots.py`.
 
 All temporary collections (`perfTest`) and temporary data files are removed automatically after each run.
 
+## Usage (CLI)
+
+```
+irodsperf
+usage: irodsperf [-h] [--all] [--clients CLIENTS [CLIENTS ...]]
+                 [--sizes SIZES [SIZES ...]] [--small-files SMALL_FILES]
+                 [--small-size SMALL_SIZE] [--output OUTPUT] [--plot PICKLE]
+                 [--plot-out PLOT_OUT]
+
+iRODS performance benchmarking tool
+
+options:
+  -h, --help            show this help message and exit
+  --all                 Run the full benchmark with the selected parameters (default:
+                        False)
+  --clients CLIENTS [CLIENTS ...]
+                        Clients to benchmark (default: ['python', 'icommands',
+                        'cadaver'])
+  --sizes SIZES [SIZES ...]
+                        Large file sizes in GB (default: [2, 3, 5])
+  --small-files SMALL_FILES
+                        Number of small files to generate (default: 4000)
+  --small-size SMALL_SIZE
+                        Size of each small file in KB (default: 500)
+  --output OUTPUT       Output pickle file (default: irodsPerformances.out.pickle)
+  --plot PICKLE         Plot results from a pickle file instead of running benchmarks
+                        (default: None)
+  --plot-out PLOT_OUT   Filename for saving the plot (default: plot.png)
+```
+
+Example
+
+```
+irodsperf --clients python --sizes 1 --output out.pkl
+
+Running with parameters:
+
+{   'clients': ['python'],
+    'output_file': 'out.pkl',
+    'sizes': [1],
+    'small_files': 4000,
+    'small_size': 500}
+
+irodsperf --plot out.pkl
+```

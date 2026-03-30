@@ -198,7 +198,7 @@ def test_python_irods_connection(envfile: Optional[str] = None) -> None:
     """
 
     # Import inside the function to avoid circular imports
-    from src.irodsperf.session import python_session_from_env
+    from irodsperf.session import python_session_from_env
     env_path = check_irods_environment(envfile)
     env = json.loads(env_path.read_text())
 
