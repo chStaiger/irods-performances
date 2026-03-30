@@ -32,24 +32,36 @@ def check_iinit() -> None:
 
 
 def check_iput() -> None:
-    """Verify that `iput` exists and that the iCommands environment is initialized."""
+    """Verify that `iput` exists on PATH."""
     if not _command_exists("iput"):
         raise EnvironmentError(
             "iput not found. Install iRODS iCommands and ensure they are on your PATH."
         )
 
-    # Check that the iCommands environment is initialized (i.e., iinit was run)
-    try:
-        subprocess.run(
-            ["ils"],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            check=True,
-        )
-    except subprocess.CalledProcessError:
+def test_icommands_connection() -> None:
+    """
+    Perform a real iCommands connection test by running `ils`.
+    This verifies:
+      - iCommands are installed
+      - the environment is initialized (iinit was run)
+      - authentication works
+      - the iRODS server is reachable
+    """
+    check_iinit()
+    check_iput()
+
+    proc = subprocess.run(
+        ["ils"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+    )
+
+    if proc.returncode != 0:
         raise EnvironmentError(
-            "iCommands are installed but not configured.\n"
-            "Run `iinit` to set up your iRODS environment."
+            "iCommands appear to be installed but cannot connect to the iRODS server.\n"
+            f"Output:\n{proc.stdout}\nErrors:\n{proc.stderr}\n"
+            "Try running `iinit` again or verify your irods_environment.json."
         )
 
 
