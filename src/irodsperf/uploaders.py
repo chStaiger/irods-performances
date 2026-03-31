@@ -111,16 +111,42 @@ def upload_icommands(
     resource: str | None = None,
 ) -> UploadResult:
 
-    cmd = ["iput", "-bf"]
+    localpath = Path(localpath)
+
+    # Detect whether directory contains subdirectories
+    contains_subdirs = False
+    if localpath.is_dir():
+        for entry in localpath.iterdir():
+            if entry.is_dir():
+                contains_subdirs = True
+                break
+
+    cmd = ["iput"]
+
+    # --- Choose correct flags ---
+    if recursive:
+        if contains_subdirs:
+            # Nested directories → cannot use -b
+            cmd.append("-r")
+        else:
+            # Flat directory → bulk recursive works
+            cmd.append("-br")
+    else:
+        # Non-recursive upload (single file or flat directory)
+        cmd.append("-b")
+
+    # Checksum
     if checksum:
         cmd.append("-K")
+
+    # Resource
     if resource:
         cmd += ["-R", resource]
-    if recursive:
-        cmd.append("-r")
 
+    # Paths
     cmd += [str(localpath), collpath]
 
+    # Run command
     subprocess.run(cmd, check=True)
 
     return UploadResult(
