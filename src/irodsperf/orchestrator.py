@@ -153,11 +153,12 @@ def run_all_tests(
             # ---- Run 1: without checksum ----
             print("\tNo checksum tests ...")
             for f in large_files:
-                print(f"Upload {f} ...")
+                print(f"Upload {f} to {collpath} ...")
                 result = upload_icommands(f, collpath, checksum=False)
                 results.append(result)
 
             # Upload folder with small files
+            print(f"Upload {small_dir} ...")
             result = upload_icommands(small_dir, collpath, checksum=False, recursive = True)
             results.append(result)
 
@@ -166,10 +167,12 @@ def run_all_tests(
             reset_perftest_collection("icommands", "perfTest")
             print("\tCecksum tests ...")
             for f in large_files:
+                print(f"Upload {f} to {collpath} ...")
                 result = upload_icommands(f, collpath, checksum=True)
                 results.append(result)
 
             # Upload folder with small files
+            print(f"Upload {small_dir} ...")
             result = upload_icommands(small_dir, collpath, checksum=True, recursive = True)
             results.append(result)
 
@@ -192,7 +195,6 @@ def run_all_tests(
                 collpath = f"/{session.zone}/home/{session.username}/perfTest"
             ensure_perftest_collection(client, collpath, session)
             reset_perftest_collection(client, collpath, session)
-            print(f"Uploading to {collpath}")
 
             # ---- Run 1: without checksum ----
             print("\tNo checksum tests ...")
@@ -209,9 +211,10 @@ def run_all_tests(
             reset_perftest_collection(client, collpath, session)
             print("\tChecksum tests ...")
             for f in large_files:
+                print(f"Upload {f} to {collpath} ...")
                 result = upload_python(f, collpath, session, checksum=True)
                 results.append(result)
-
+            print("Upload dir ...")
             result = upload_python(small_dir, collpath, session, checksum=True, recursive = True)
             results.append(result)
 
@@ -232,9 +235,11 @@ def run_all_tests(
 
             # WebDAV does not support checksum
             for f in large_files:
+                print(f"Upload {f} to {collpath} ...")
                 result = upload_webdav(f, collpath)
                 results.append(result)
 
+            print("Upload dir ...")
             result = upload_webdav(small_dir, collpath)
             results.append(result)
 
