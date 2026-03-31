@@ -1,0 +1,15 @@
+# YAML 1.2
+---
+cff-version: "1.2.0"
+title: "irodsperf"
+authors:
+  - family-names: Staiger
+    given-names: Christine
+    orcid: "https://orcid.org/0000-0002-6754-7647"
+date-released: 2026-03-29
+version: "0.1.0"
+repository-code: "https://github.com/chStaiger/irodsperf"
+keywords:
+  - "iRODS"
+  - "Performance"
+message: "If you use this software, please cite it using these metadata."
