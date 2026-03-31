@@ -1,12 +1,11 @@
 import json
-from pathlib import Path
 import subprocess
-from typing import Optional
-from irods.session import iRODSSession
-from irods.exception import NetworkException, CAT_INVALID_AUTHENTICATION
+from pathlib import Path
+from irods.exception import CAT_INVALID_AUTHENTICATION
+from irods.exception import NetworkException
 
 
-class EnvironmentError(Exception):
+class PerfEnvironmentError(Exception):
     """Raised when required external tools or configuration are missing."""
 
 
@@ -17,16 +16,19 @@ class EnvironmentError(Exception):
 def _command_exists(cmd: str) -> bool:
     result = subprocess.run(
         ["which", cmd],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        check=False,
+        capture_output=True,
         text=True,
     )
     return result.returncode == 0
 
+# -----------------------------
+# Collection creation
+# -----------------------------
 
 def ensure_perftest_collection(client: str, collpath: str, session=None) -> None:
-    """
-    Ensure that the performance test collection exists for the given client.
+    """Ensure that the performance test collection exists for the given client.
+
     This operation is NOT timed and should be called before uploads.
 
     Parameters
@@ -40,35 +42,27 @@ def ensure_perftest_collection(client: str, collpath: str, session=None) -> None
     session : iRODSSession, optional
         Required only for python-irodsclient.
     """
-
-    # -----------------------------
     # iCommands
-    # -----------------------------
     if client == "icommands":
         subprocess.run(
             ["imkdir", "-p", collpath],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            check=False,
+            capture_output=True,
             text=True,
         )
         return
 
-    # -----------------------------
     # python-irodsclient
-    # -----------------------------
     if client == "python":
         if session is None:
-            raise EnvironmentError("python client requires a session for collection creation")
-
+            raise PerfEnvironmentError("python client requires a session for collection creation")
         try:
             session.collections.get(collpath)
         except Exception:
             session.collections.create(collpath)
         return
 
-    # -----------------------------
     # WebDAV / cadaver
-    # -----------------------------
     if client == "webdav":
         cadaverrc = Path.home() / ".cadaverrc"
         url = None
@@ -78,43 +72,41 @@ def ensure_perftest_collection(client: str, collpath: str, session=None) -> None
                 break
 
         if url is None:
-            raise EnvironmentError("Could not find 'open <url>' in ~/.cadaverrc")
+            raise PerfEnvironmentError("Could not find 'open <url>' in ~/.cadaverrc")
 
         mkdir_cmd = f"mkdir {collpath}\nquit\n"
         subprocess.run(
             ["cadaver", url],
-            input=mkdir_cmd,
+            check=False, input=mkdir_cmd,
             text=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            capture_output=True,
         )
         return
 
     raise ValueError(f"Unknown client: {client}")
 
-
 # -----------------------------
 # iRODS environment.json checks
 # -----------------------------
 
-def check_irods_environment(envfile: Optional[str] = None) -> Path:
-    """
-    Validate the iRODS environment.json file (iCommands format).
+def check_irods_environment(envfile: str | None = None) -> Path:
+    """Validate the iRODS environment.json file (iCommands format).
+
     Returns the resolved Path.
     """
     default_path = Path.home() / ".irods" / "irods_environment.json"
     env_path = Path(envfile) if envfile else default_path
 
     if not env_path.exists():
-        raise EnvironmentError(
+        raise PerfEnvironmentError(
             f"iRODS environment file not found. Expected at: {env_path}\n"
-            "Run `iinit` or create the file manually."
+            "Run `iinit` or create the file manually.",
         )
 
     try:
         data = json.loads(env_path.read_text())
     except json.JSONDecodeError:
-        raise EnvironmentError(f"Invalid JSON in {env_path}")
+        raise PerfEnvironmentError(f"Invalid JSON in {env_path}")
 
     required = [
         "irods_host",
@@ -125,17 +117,11 @@ def check_irods_environment(envfile: Optional[str] = None) -> Path:
 
     missing = [key for key in required if key not in data]
     if missing:
-        raise EnvironmentError(
-            f"iRODS environment file {env_path} is missing required fields: {', '.join(missing)}"
+        raise PerfEnvironmentError(
+            f"iRODS environment file {env_path} is missing required fields: {', '.join(missing)}",
         )
 
     return env_path
-
-
-def load_irods_environment(envfile: Optional[str] = None) -> dict:
-    """Load and return the iRODS environment.json as a dict."""
-    env_path = check_irods_environment(envfile)
-    return json.loads(env_path.read_text())
 
 
 # -----------------------------
@@ -145,23 +131,24 @@ def load_irods_environment(envfile: Optional[str] = None) -> dict:
 def check_iinit() -> None:
     """Verify that `iinit` exists on PATH."""
     if not _command_exists("iinit"):
-        raise EnvironmentError(
+        raise PerfEnvironmentError
+        (
             "iinit not found. iCommands appear to be missing or not on your PATH.\n"
-            "Ensure the iCommands bin directory is included in your PATH."
+            "Ensure the iCommands bin directory is included in your PATH.",
         )
 
 
 def check_iput() -> None:
     """Verify that `iput` exists on PATH."""
     if not _command_exists("iput"):
-        raise EnvironmentError(
-            "iput not found. Install iRODS iCommands and ensure they are on your PATH."
+        raise PerfEnvironmentError(
+            "iput not found. Install iRODS iCommands and ensure they are on your PATH.",
         )
 
 
 def test_icommands_connection() -> None:
-    """
-    Perform a real iCommands connection test by running `ils`.
+    """Perform a real iCommands connection test by running `ils`.
+
     Verifies:
       - iCommands installed
       - environment initialized (iinit)
@@ -174,16 +161,16 @@ def test_icommands_connection() -> None:
 
     proc = subprocess.run(
         ["ils"],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        check=False,
+        capture_output=True,
         text=True,
     )
 
     if proc.returncode != 0:
-        raise EnvironmentError(
+        raise PerfEnvironmentError(
             "iCommands appear to be installed but cannot connect to the iRODS server.\n"
             f"Output:\n{proc.stdout}\nErrors:\n{proc.stderr}\n"
-            "Try running `iinit` again or verify your irods_environment.json."
+            "Try running `iinit` again or verify your irods_environment.json.",
         )
 
 
@@ -191,26 +178,25 @@ def test_icommands_connection() -> None:
 # python-irodsclient checks
 # -----------------------------
 
-def test_python_irods_connection(envfile: Optional[str] = None) -> None:
-    """
-    Perform a real connection test using python-irodsclient.
+def test_python_irods_connection(envfile: str | None = None) -> None:
+    """Perform a real connection test using python-irodsclient.
+
     SSL settings are automatically loaded from irods_environment.json.
     """
-
     # Import inside the function to avoid circular imports
     from irodsperf.session import python_session_from_env
     env_path = check_irods_environment(envfile)
-    env = json.loads(env_path.read_text())
+    _ = json.loads(env_path.read_text())
 
     try:
         session = python_session_from_env(envfile)
         print(f"Connected to {session.zone}")
     except CAT_INVALID_AUTHENTICATION:
-        raise EnvironmentError("Invalid iRODS credentials for python-irodsclient.")
+        raise PerfEnvironmentError("Invalid iRODS credentials for python-irodsclient.")
     except NetworkException as e:
-        raise EnvironmentError(f"Cannot reach iRODS server: {e}")
+        raise PerfEnvironmentError(f"Cannot reach iRODS server: {e}")
     except Exception as e:
-        raise EnvironmentError(f"Unexpected python-irodsclient error: {e}")
+        raise PerfEnvironmentError(f"Unexpected python-irodsclient error: {e}")
     finally:
         try:
             session.cleanup()
@@ -225,39 +211,67 @@ def test_python_irods_connection(envfile: Optional[str] = None) -> None:
 def check_cadaver() -> None:
     """Verify that the cadaver WebDAV client is installed."""
     if not _command_exists("cadaver"):
-        raise EnvironmentError(
-            "Cadaver (WebDAV client) is not installed. Install it via your package manager."
+        raise PerfEnvironmentError(
+            "Cadaver (WebDAV client) is not installed. Install it via your package manager.",
         )
 
 
 def check_cadaver_credentials(
-    netrc_path: Optional[str] = None,
-    cadaverrc_path: Optional[str] = None,
+    netrc_path: str | None = None,
+    cadaverrc_path: str | None = None,
 ) -> None:
-    """Validate that ~/.netrc and ~/.cadaverrc exist and contain required fields."""
+    """Validate that cadaver has enough information to authenticate.
+
+    Accepts:
+      - ~/.netrc with login/password
+      - OR ~/.cadaverrc with embedded credentials
+      - OR ~/.cadaverrc with a plain URL (server may prompt)
+    """
     netrc = Path(netrc_path or Path.home() / ".netrc")
     cadaverrc = Path(cadaverrc_path or Path.home() / ".cadaverrc")
 
-    if not netrc.exists():
-        raise EnvironmentError(f"Missing ~/.netrc: {netrc}")
-
+    # ~/.cadaverrc is required because it contains the WebDAV URL
     if not cadaverrc.exists():
-        raise EnvironmentError(f"Missing ~/.cadaverrc: {cadaverrc}")
-
-    content = netrc.read_text()
-    if "login" not in content or "password" not in content:
-        raise EnvironmentError(f"{netrc} does not contain valid login/password entries.")
+        raise PerfEnvironmentError(f"Missing ~/.cadaverrc: {cadaverrc}")
 
     cadaverrc_content = cadaverrc.read_text()
-    if "http" not in cadaverrc_content:
-        raise EnvironmentError(
-            f"{cadaverrc} does not contain a valid WebDAV URL (expected 'open http://...')."
+
+    # Extract the URL from "open <url>"
+    url = None
+    for line in cadaverrc_content.splitlines():
+        if line.strip().startswith("open "):
+            url = line.split(" ", 1)[1].strip()
+            break
+
+    if url is None:
+        raise PerfEnvironmentError(
+            f"{cadaverrc} does not contain a valid 'open <url>' line.",
         )
+
+    # Case 1: URL contains credentials → OK
+    if "@" in url and "://" in url:
+        # e.g. https://user:pass@host
+        return
+
+    # Case 2: ~/.netrc exists and contains login/password → OK
+    if netrc.exists():
+        content = netrc.read_text()
+        if "login" in content and "password" in content:
+            return
+        raise PerfEnvironmentError(
+            f"{netrc} exists but does not contain valid login/password entries.",
+        )
+
+    # Case 3: No credentials anywhere → warn
+    raise PerfEnvironmentError(
+        "Cadaver has no credentials available.\n"
+        "Provide login/password in ~/.netrc or embed them in ~/.cadaverrc.",
+    )
 
 
 def test_cadaver_connection(url: str | None = None) -> None:
-    """
-    Attempt a real WebDAV connection using cadaver by issuing a harmless 'ls' command.
+    """Attempt a real WebDAV connection using cadaver by issuing a harmless 'ls' command.
+
     If no URL is provided, load it from ~/.cadaverrc.
     """
     check_cadaver()
@@ -270,27 +284,26 @@ def test_cadaver_connection(url: str | None = None) -> None:
                 url = line.split(" ", 1)[1].strip()
                 break
         if url is None:
-            raise EnvironmentError(
-                f"{cadaverrc} exists but contains no 'open <url>' line."
+            raise PerfEnvironmentError(
+                f"{cadaverrc} exists but contains no 'open <url>' line.",
             )
 
     proc = subprocess.run(
         ["cadaver", url],
-        input="ls\nquit\n",
+        check=False, input="ls\nquit\n",
         text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        capture_output=True,
     )
 
     if proc.returncode != 0:
-        raise EnvironmentError(
+        raise PerfEnvironmentError(
             f"Cadaver could not connect to {url}.\n"
-            f"Output:\n{proc.stdout}\nErrors:\n{proc.stderr}"
+            f"Output:\n{proc.stdout}\nErrors:\n{proc.stderr}",
         )
 
 def reset_perftest_collection(client: str, collpath: str, session=None) -> None:
-    """
-    Ensure the perftest collection exists and is empty.
+    """Ensure the perftest collection exists and is empty.
+
     This operation is NOT timed and should be called before uploads.
 
     Parameters
@@ -304,72 +317,57 @@ def reset_perftest_collection(client: str, collpath: str, session=None) -> None:
     session : iRODSSession, optional
         Required only for python-irodsclient.
     """
-
-    # ------------------------------------------------------------
     # iCommands
-    # ------------------------------------------------------------
-
     if client == "icommands":
         # Ensure collection exists
         subprocess.run(["imkdir", "-p", collpath], check=True)
 
-        # --- 1. List root-level contents ---
         proc = subprocess.run(
             ["ils", "-l", collpath],
             capture_output=True,
             text=True,
-            check=True
+            check=True,
         )
 
         for line in proc.stdout.splitlines():
-            line = line.strip()
+            stripped = line.strip()
 
-            # Skip header
-            if line.endswith(":"):
+            if stripped.endswith(":"):
                 continue
 
-            # Subcollection: always starts with "C-"
-            if line.startswith("C-"):
-                subcoll = line.split()[-1]
+            if stripped.startswith("C-"):
+                subcoll = stripped.split()[-1]
                 subprocess.run(["irm", "-rf", subcoll], check=True)
                 continue
 
-            # Data object: anything else that is not empty
-            if line:
-                # The filename is always the last token
-                filename = line.split()[-1]
+            if stripped:
+                filename = stripped.split()[-1]
                 full = f"{collpath}/{filename}"
                 subprocess.run(["irm", "-f", full], check=True)
 
         return
 
-    # ------------------------------------------------------------
     # python-irodsclient
-    # ------------------------------------------------------------
     if client == "python":
         if session is None:
-            raise EnvironmentError("python client requires a session for collection reset")
+            msg = "python client requires a session for collection reset"
+            raise PerfEnvironmentError(msg)
 
-        # Create collection if missing
         try:
             coll = session.collections.get(collpath)
         except Exception:
             session.collections.create(collpath)
             coll = session.collections.get(collpath)
 
-        # Remove all data objects
         for obj in coll.data_objects:
             session.data_objects.unlink(obj.path, force=True)
 
-        # Remove all subcollections
         for sub in coll.subcollections:
             session.collections.remove(sub.path, recurse=True, force=True)
 
         return
 
-    # ------------------------------------------------------------
     # WebDAV / cadaver
-    # ------------------------------------------------------------
     if client == "webdav":
         cadaverrc = Path.home() / ".cadaverrc"
         url = None
@@ -379,27 +377,25 @@ def reset_perftest_collection(client: str, collpath: str, session=None) -> None:
                 break
 
         if url is None:
-            raise EnvironmentError("Could not find 'open <url>' in ~/.cadaverrc")
+            msg = "Could not find 'open <url>' in ~/.cadaverrc"
+            raise PerfEnvironmentError(msg)
 
         # Create collection if missing
         subprocess.run(
             ["cadaver", url],
-            input=f"mkdir {collpath}\nquit\n",
+            check=False, input=f"mkdir {collpath}\nquit\n",
             text=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            capture_output=True,
         )
 
         # Remove all contents
         subprocess.run(
             ["cadaver", url],
-            input=f"cd {collpath}\nls\nmrm *\nquit\n",
+            check=False, input=f"cd {collpath}\nls\nmrm *\nquit\n",
             text=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            capture_output=True,
         )
         return
 
-    raise ValueError(f"Unknown client: {client}")
-
-
+    msg = f"Unknown client: {client}"
+    raise ValueError(msg)

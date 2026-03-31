@@ -60,16 +60,11 @@ extend-exclude = ["docs"]
 
 [tool.ruff.lint]
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
-select = ["ALL"]
+select = ["D", "E", "F", "W", "I", "N"]
 ignore = [
-    "ANN101",
-    "ANN102",
-    "ANN204",
     "FBT",
-    "TD",
     "FIX001",
     "FIX002",
-    "B028",
     "D100",
     "D104",
     "D105",
