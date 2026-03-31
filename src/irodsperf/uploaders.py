@@ -1,13 +1,11 @@
-import time
-import subprocess
 import os
+import subprocess
+import time
 from pathlib import Path
-from irods.session import iRODSSession
-import irods.keywords as kw
 import irods
-
+import irods.keywords as kw
+from irods.session import iRODSSession
 from .models import UploadResult
-
 
 # -----------------------------
 # Timing decorator (fixed)
@@ -39,7 +37,7 @@ def upload_python(
     recursive: bool = False,
     resource: str | None = None,
 ) -> UploadResult:
-
+    """Upload file or directory with prc."""
     filepath = Path(filepath)
 
     # Build iRODS put options
@@ -110,7 +108,7 @@ def upload_icommands(
     recursive: bool = False,
     resource: str | None = None,
 ) -> UploadResult:
-
+    """Upload file or directory woth icommands."""
     localpath = Path(localpath)
 
     # Detect whether directory contains subdirectories
@@ -163,8 +161,8 @@ def upload_icommands(
 
 @_timed
 def upload_webdav(filepath: str | Path, collpath: str) -> UploadResult:
-    """
-    Upload a file or directory using cadaver.
+    """Upload a file or directory using cadaver.
+
     Assumes ~/.cadaverrc contains: open <url>, username, password.
     """
     filepath = Path(filepath)
@@ -202,7 +200,7 @@ def upload_webdav(filepath: str | Path, collpath: str) -> UploadResult:
             # Upload files in this directory
             for fname in files:
                 src = root / fname
-                dst = target_coll / fname
+                #dst = target_coll / fname
 
                 cadaver_input = (
                     f"cd {target_coll}\n"
