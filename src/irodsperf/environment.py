@@ -308,12 +308,39 @@ def reset_perftest_collection(client: str, collpath: str, session=None) -> None:
     # ------------------------------------------------------------
     # iCommands
     # ------------------------------------------------------------
-    if client == "icommands":
-        # Create collection if missing
-        subprocess.run(["imkdir", "-p", collpath])
 
-        # Remove all contents
-        subprocess.run(["irm", "-rf", f"{collpath}/*"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if client == "icommands":
+        # Ensure collection exists
+        subprocess.run(["imkdir", "-p", collpath], check=True)
+
+        # --- 1. List root-level contents ---
+        proc = subprocess.run(
+            ["ils", "-l", collpath],
+            capture_output=True,
+            text=True,
+            check=True
+        )
+
+        for line in proc.stdout.splitlines():
+            line = line.strip()
+
+            # Skip header
+            if line.endswith(":"):
+                continue
+
+            # Subcollection: always starts with "C-"
+            if line.startswith("C-"):
+                subcoll = line.split()[-1]
+                subprocess.run(["irm", "-rf", subcoll], check=True)
+                continue
+
+            # Data object: anything else that is not empty
+            if line:
+                # The filename is always the last token
+                filename = line.split()[-1]
+                full = f"{collpath}/{filename}"
+                subprocess.run(["irm", "-f", full], check=True)
+
         return
 
     # ------------------------------------------------------------

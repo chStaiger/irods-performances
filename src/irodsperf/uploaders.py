@@ -133,7 +133,7 @@ def upload_icommands(
             cmd.append("-br")
     else:
         # Non-recursive upload (single file or flat directory)
-        cmd.append("-bf")
+        cmd.append("-b")
 
     # Checksum
     if checksum:

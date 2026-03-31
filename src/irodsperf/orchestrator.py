@@ -119,6 +119,7 @@ def run_all_tests(
     # -----------------------------
     # Prepare local test data
     # -----------------------------
+    print("Prepare local test data ...")
     datafolder = Path(datafolder)
     ensure_dir(datafolder)
 
@@ -152,6 +153,7 @@ def run_all_tests(
             reset_perftest_collection("icommands", "perfTest")
 
             # ---- Run 1: without checksum ----
+            print("\tNo checksum tests ...")
             for f in large_files:
                 result = upload_icommands(f, collpath, checksum=False)
                 results.append(result)
@@ -161,7 +163,9 @@ def run_all_tests(
             results.append(result)
 
             # ---- Run 2: with checksum ----
+            print("\tClean up ...")
             reset_perftest_collection("icommands", "perfTest")
+            print("\tCecksum tests ...")
             for f in large_files:
                 result = upload_icommands(f, collpath, checksum=True)
                 results.append(result)
@@ -192,6 +196,7 @@ def run_all_tests(
             reset_perftest_collection(client, collpath, session)
 
             # ---- Run 1: without checksum ----
+            print("\tNo checksum tests ...")
             for f in large_files:
                 result = upload_python(f, collpath, session, checksum=False)
                 results.append(result)
@@ -200,7 +205,9 @@ def run_all_tests(
             results.append(result)
 
             # ---- Run 2: with checksum ----
+            print("\tCleanup ...")
             reset_perftest_collection(client, collpath, session)
+            print("\tChecksum tests ...")
             for f in large_files:
                 result = upload_python(f, collpath, session, checksum=True)
                 results.append(result)
@@ -223,6 +230,7 @@ def run_all_tests(
             collpath = "perfTest"
             ensure_perftest_collection(client, collpath)
             reset_perftest_collection(client, collpath)
+            print("\tNo checksum tests ...")
 
             # WebDAV does not support checksum
             for f in large_files:
@@ -240,10 +248,12 @@ def run_all_tests(
     # -----------------------------
     # Save results
     # -----------------------------
+    print("Save results ...")
     with open(output_file, "wb") as f:
         pickle.dump(results, f)
 
     # -----------------------------
     # Cleanup local files
     # -----------------------------
+    print("Cleanup local data...")
     cleanup_local(datafolder)
