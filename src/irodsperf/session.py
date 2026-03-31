@@ -48,9 +48,7 @@ def icommands_init(envfile: str | None = None) -> None:
     password = env.get("irods_password")
 
     # --- CASE 1: Password available → run iinit non-interactively ---
-    print("test")
     if password:
-        print("password exists")
         try:
             proc = subprocess.run(
                 ["iinit"],
@@ -69,7 +67,6 @@ def icommands_init(envfile: str | None = None) -> None:
 
     # --- CASE 2: No password → fall back to interactive iinit ---
     try:
-        print("no password")
         subprocess.run(["iinit"], check=True)
     except FileNotFoundError:
         raise EnvironmentError(
