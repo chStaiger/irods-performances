@@ -1,22 +1,22 @@
-from pathlib import Path
 import pickle
-
-from .filegen import ensure_dir, create_file_gb, create_file_kb
-from .session import python_session_from_env, icommands_init
-from .uploaders import upload_python, upload_icommands, upload_webdav
-from .cleanup import cleanup_irods, cleanup_local
-from .environment import reset_perftest_collection, ensure_perftest_collection
-
-from .environment import (
-    check_iinit,
-    check_iput,
-    test_icommands_connection,
-    check_irods_environment,
-    test_python_irods_connection,
-    check_cadaver,
-    check_cadaver_credentials,
-    test_cadaver_connection,
-)
+from pathlib import Path
+from .cleanup import cleanup_irods
+from .cleanup import cleanup_local
+from .environment import check_iinit
+from .environment import check_irods_environment
+from .environment import ensure_perftest_collection
+from .environment import reset_perftest_collection
+from .environment import test_cadaver_connection
+from .environment import test_icommands_connection
+from .environment import test_python_irods_connection
+from .filegen import create_file_gb
+from .filegen import create_file_kb
+from .filegen import ensure_dir
+from .session import icommands_init
+from .session import python_session_from_env
+from .uploaders import upload_icommands
+from .uploaders import upload_python
+from .uploaders import upload_webdav
 
 
 def run_all_tests(
@@ -27,8 +27,9 @@ def run_all_tests(
     output_file: str,
     datafolder: str = "/tmp/irodsperf_data",
 ):
-    """
-    Run a full iRODS performance benchmark using any combination of:
+    """Run a full iRODS performance benchmark.
+
+    Available clients:
         - "icommands"
         - "python"
         - "webdav"
@@ -113,7 +114,6 @@ def run_all_tests(
         - Upload everything using python-irodsclient (with and without checksum)
         - Save all results to results.pkl
     """
-
     results = []
 
     # -----------------------------
@@ -144,10 +144,8 @@ def run_all_tests(
             print("Running iCommands tests…")
 
             check_iinit()
-            check_iput()
-            test_icommands_connection()
-
             icommands_init()
+            test_icommands_connection()
 
             collpath = "perfTest"
             reset_perftest_collection("icommands", "perfTest")
@@ -223,8 +221,6 @@ def run_all_tests(
         elif client == "webdav":
             print("Running WebDAV (cadaver) tests…")
 
-            check_cadaver()
-            check_cadaver_credentials()
             test_cadaver_connection()
 
             collpath = "perfTest"
