@@ -75,8 +75,10 @@ def main():
     if args.output is not None:
         run_params["output_file"] = args.output
 
-    print("Running with parameters:\n")
-    print(pformat(run_params, indent=4))
+    print("\n=== Running benchmark with parameters ===")
+    for key, value in run_params.items():
+        print(f"{key:15}: {value}")
+    print("========================================\n")
 
     # --- CASE 4: Run benchmark ---
     run_all_tests(

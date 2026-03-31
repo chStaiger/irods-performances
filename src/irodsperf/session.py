@@ -34,14 +34,38 @@ def python_session_from_env(envfile: str | None = None) -> iRODSSession:
 
     return session
 
-
-def icommands_init() -> None:
+def icommands_init(envfile: str | None = None) -> None:
     """
-    Run `iinit` after verifying that iCommands are installed.
-    Provides clear error messages if something is missing or misconfigured.
+    Run `iinit` using the password from irods_environment.json if available.
+    Falls back to interactive mode if no password is stored.
     """
     check_iinit()
 
+    # Load environment file (same helper as python_session_from_env)
+    env_path = check_irods_environment(envfile)
+    env = json.loads(env_path.read_text())
+
+    password = env.get("irods_password")
+
+    # --- CASE 1: Password available → run iinit non-interactively ---
+    if password:
+        try:
+            proc = subprocess.run(
+                ["iinit"],
+                input=password + "\n",
+                text=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                check=True,
+            )
+            return
+        except subprocess.CalledProcessError as e:
+            raise EnvironmentError(
+                f"iinit failed using password from environment file.\n"
+                f"Output:\n{e.stdout}\nErrors:\n{e.stderr}"
+            )
+
+    # --- CASE 2: No password → fall back to interactive iinit ---
     try:
         subprocess.run(["iinit"], check=True)
     except FileNotFoundError:
