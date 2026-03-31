@@ -30,6 +30,12 @@ This creates performance tests where a 1GB file and a folder containing 10 files
 
 To run the benchmarking framework, three clients must be configured correctly: **iCommands**, **python‑irodsclient**, and **WebDAV (`cadaver`)**. All clients must authenticate to the same iRODS server and operate inside the same home collection.
 
+Install the python package with
+
+```
+pip3.11 install git+https://github.com/chStaiger/irods-performances.git
+```
+
 ### 1. iCommands Configuration
 
 The framework reads connection details from your standard iRODS environment file:
