@@ -30,7 +30,7 @@ def plot_results(results, outfile="plot.png"):
     # --- NEW PART: sum small-file durations ---
     summary = (
         df.groupby(["method", "size"])["duration"]
-        .sum()
+        .mean()
         .reset_index()
     )
 
