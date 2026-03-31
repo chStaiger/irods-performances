@@ -188,13 +188,20 @@ def upload_webdav(filepath: str | Path, collpath: str) -> UploadResult:
             target_coll = Path(collpath) / rel
 
             # Create directory in WebDAV
-            cadaver_input = f"mkdir {target_coll}\nquit\n"
+            parent = target_coll.parent
+            dirname = target_coll.name
+
+            cadaver_input = (
+                f"cd {parent}\n"
+                f"mkdir {dirname}\n"
+                f"quit\n"
+            )
+
             subprocess.run(
                 ["cadaver", url],
                 input=cadaver_input,
                 text=True,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
+                capture_output=True,
             )
 
             # Upload files in this directory
