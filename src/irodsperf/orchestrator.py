@@ -190,9 +190,9 @@ def run_all_tests(
                 collpath = f"{home}/perfTest"
             else:
                 collpath = f"/{session.zone}/home/{session.username}/perfTest"
-            print(f"Uploading to {collpath}")
             ensure_perftest_collection(client, collpath, session)
             reset_perftest_collection(client, collpath, session)
+            print(f"Uploading to {collpath}")
 
             # ---- Run 1: without checksum ----
             print("\tNo checksum tests ...")

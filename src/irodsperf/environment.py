@@ -42,6 +42,7 @@ def ensure_perftest_collection(client: str, collpath: str, session=None) -> None
     session : iRODSSession, optional
         Required only for python-irodsclient.
     """
+    print(f"Ensure {collpath}")
     # iCommands
     if client == "icommands":
         subprocess.run(
@@ -57,8 +58,10 @@ def ensure_perftest_collection(client: str, collpath: str, session=None) -> None
         if session is None:
             raise PerfEnvironmentError("python client requires a session for collection creation")
         try:
+            print("Exists")
             session.collections.get(collpath)
         except Exception:
+            print("Creating")
             session.collections.create(collpath)
         return
 
