@@ -1,19 +1,15 @@
-import subprocess
 import json
+import subprocess
 from getpass import getpass
-from pathlib import Path
 from irods.session import iRODSSession
-
-from .environment import (
-    check_iinit,
-    check_irods_environment,
-    EnvironmentError,
-)
+from .environment import EnvironmentError
+from .environment import check_iinit
+from .environment import check_irods_environment
 
 
 def python_session_from_env(envfile: str | None = None) -> iRODSSession:
-    """
-    Create an iRODS session using the user's iCommands-style irods_environment.json.
+    """Create an iRODS session using the user's iCommands-style irods_environment.json.
+
     Prompts the user for their password and validates the connection.
     """
     env_path = check_irods_environment(envfile)
@@ -35,8 +31,8 @@ def python_session_from_env(envfile: str | None = None) -> iRODSSession:
     return session
 
 def icommands_init(envfile: str | None = None) -> None:
-    """
-    Run `iinit` using the password from irods_environment.json if available.
+    """Run `iinit` using the password from irods_environment.json if available.
+
     Falls back to interactive mode if no password is stored.
     """
     check_iinit()
@@ -50,7 +46,7 @@ def icommands_init(envfile: str | None = None) -> None:
     # --- CASE 1: Password available → run iinit non-interactively ---
     if password:
         try:
-            proc = subprocess.run(
+            _ = subprocess.run(
                 ["iinit"],
                 input=password + "\n",
                 text=True,
