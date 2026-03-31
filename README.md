@@ -22,7 +22,7 @@ output_file    : irodsPerformances.out.pickle
 irodsperf --plot irodsPerformances.out.pickle
 ```
 
-![Example output](figueres/example_res.png)
+![Example output](figures/example_res.png)
 
 ## Installation and configuration
 
