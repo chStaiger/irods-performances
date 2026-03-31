@@ -27,7 +27,7 @@ def plot_results(results, outfile="plot.png"):
     # Combine client + checksum into a single method label
     df["method"] = df["client"] + df["checksum"]
 
-    # --- NEW PART: sum small-file durations ---
+    # In case several runs were done and combined into one data frame
     summary = (
         df.groupby(["method", "size"])["duration"]
         .mean()
