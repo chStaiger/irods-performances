@@ -1,10 +1,11 @@
 import argparse
 import pickle
-from pprint import pformat
-from .plot import plot_results
 from .orchestrator import run_all_tests
+from .plot import plot_results
+
 
 def main():
+    """Main CLI."""
     parser = argparse.ArgumentParser(
         prog="irodsperf",
         description="iRODS performance benchmarking tool",
