@@ -153,6 +153,7 @@ def run_all_tests(
             # ---- Run 1: without checksum ----
             print("\tNo checksum tests ...")
             for f in large_files:
+                print(f"Upload {f} ...")
                 result = upload_icommands(f, collpath, checksum=False)
                 results.append(result)
 
