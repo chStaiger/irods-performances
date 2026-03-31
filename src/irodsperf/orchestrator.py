@@ -220,9 +220,9 @@ def run_all_tests(
         # ============================================================
         elif client == "webdav":
             print("Running WebDAV (cadaver) tests…")
-
+            print("Test connection ..")
             test_cadaver_connection()
-
+            print("Start tests ..")
             collpath = "perfTest"
             ensure_perftest_collection(client, collpath)
             reset_perftest_collection(client, collpath)
