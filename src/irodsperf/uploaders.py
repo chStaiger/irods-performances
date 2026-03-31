@@ -30,9 +30,9 @@ def _timed(func):
 
 def _ensure_collection(session, path: str):
     try:
-        session.collections.get(str(current))
+        session.collections.get(str(path))
     except Exception:
-        session.collections.create(str(current))
+        session.collections.create(str(path))
 
 @_timed
 def upload_python(
