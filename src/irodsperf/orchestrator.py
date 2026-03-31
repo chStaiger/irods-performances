@@ -198,7 +198,7 @@ def run_all_tests(
             for f in large_files:
                 result = upload_python(f, collpath, session, checksum=False)
                 results.append(result)
-
+            print("Upload dir ...")
             result = upload_python(small_dir, collpath, session, checksum=False, recursive = True)
             results.append(result)
 
