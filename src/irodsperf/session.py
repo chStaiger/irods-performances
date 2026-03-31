@@ -2,7 +2,7 @@ import json
 import subprocess
 from getpass import getpass
 from irods.session import iRODSSession
-from .environment import EnvironmentError
+from .environment import PerfEnvironmentError
 from .environment import check_iinit
 from .environment import check_irods_environment
 
@@ -56,7 +56,7 @@ def icommands_init(envfile: str | None = None) -> None:
             )
             return
         except subprocess.CalledProcessError as e:
-            raise EnvironmentError(
+            raise PerfEnvironmentError(
                 f"iinit failed using password from environment file.\n"
                 f"Output:\n{e.stdout}\nErrors:\n{e.stderr}"
             )
@@ -65,12 +65,12 @@ def icommands_init(envfile: str | None = None) -> None:
     try:
         subprocess.run(["iinit"], check=True)
     except FileNotFoundError:
-        raise EnvironmentError(
+        raise PerfEnvironmentError(
             "iinit was not found even though it should exist.\n"
             "This usually means your PATH is not set correctly."
         )
     except subprocess.CalledProcessError:
-        raise EnvironmentError(
+        raise PerfEnvironmentError(
             "iinit failed. Your iRODS environment may be misconfigured.\n"
             "Try running `iinit` manually to diagnose the issue."
         )
