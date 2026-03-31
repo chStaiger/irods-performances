@@ -1,17 +1,18 @@
-from pathlib import Path
-import subprocess
 import platform
+import subprocess
+from pathlib import Path
 
 
 def ensure_dir(path: str | Path) -> Path:
+    """Check and create dir."""
     path = Path(path)
     path.mkdir(parents=True, exist_ok=True)
     return path
 
 
 def _create_sparse_file(fname: Path, size: int, unit: str) -> None:
-    """
-    Internal helper to create a sparse file of given size and unit.
+    """Internal helper to create a sparse file of given size and unit.
+
     unit: 'k' for KB, 'g' for GB
     """
     system = platform.system()
@@ -25,6 +26,7 @@ def _create_sparse_file(fname: Path, size: int, unit: str) -> None:
 
 
 def create_file_gb(path: str | Path, size_gb: int) -> Path:
+    """Create a file of size in GB."""
     path = Path(path)
     fname = path / f"data{size_gb}GB.img"
     _create_sparse_file(fname, size_gb, "g")
@@ -32,6 +34,7 @@ def create_file_gb(path: str | Path, size_gb: int) -> Path:
 
 
 def create_file_kb(path: str | Path, size_kb: int, name: str) -> Path:
+    """Create a file of size in KB."""
     path = Path(path)
     fname = path / f"data{size_kb}KB.img_{name}"
     _create_sparse_file(fname, size_kb, "k")
