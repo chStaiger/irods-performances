@@ -49,6 +49,7 @@ def icommands_init(envfile: str | None = None) -> None:
 
     # --- CASE 1: Password available → run iinit non-interactively ---
     if password:
+        print("password exists")
         try:
             proc = subprocess.run(
                 ["iinit"],
