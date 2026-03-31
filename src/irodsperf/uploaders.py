@@ -107,6 +107,7 @@ def upload_icommands(
     localpath: str | Path,
     collpath: str,
     checksum: bool = False,
+    recursive: bool = False,
     resource: str | None = None,
 ) -> UploadResult:
 
