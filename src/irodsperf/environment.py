@@ -57,12 +57,31 @@ def ensure_perftest_collection(client: str, collpath: str, session=None) -> None
     if client == "python":
         if session is None:
             raise PerfEnvironmentError("python client requires a session for collection creation")
+    
+        # Ensure the full path exists, creating parents as needed
+        from pathlib import PurePosixPath
+        from irods.exception import CollectionDoesNotExist
+    
+        p = PurePosixPath(collpath)
+        parts = p.parts
+    
+        # Start with "/zone"
+        current = PurePosixPath(parts[0]) / parts[1]
+    
+        # Ensure zone root exists
         try:
-            print("Exists")
-            session.collections.get(collpath)
-        except Exception:
-            print("Creating")
-            session.collections.create(collpath)
+            session.collections.get(str(current))
+        except CollectionDoesNotExist:
+            session.collections.create(str(current))
+    
+        # Create deeper components
+        for part in parts[2:]:
+            current = current / part
+            try:
+                session.collections.get(str(current))
+            except CollectionDoesNotExist:
+                session.collections.create(str(current))
+    
         return
 
     # WebDAV / cadaver
