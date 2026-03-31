@@ -250,7 +250,6 @@ def check_cadaver_credentials(
 
     # Case 1: URL contains credentials → OK
     if "@" in url and "://" in url:
-        # e.g. https://user:pass@host
         return
 
     # Case 2: ~/.netrc exists and contains login/password → OK
@@ -258,15 +257,12 @@ def check_cadaver_credentials(
         content = netrc.read_text()
         if "login" in content and "password" in content:
             return
-        raise PerfEnvironmentError(
-            f"{netrc} exists but does not contain valid login/password entries.",
-        )
 
-    # Case 3: No credentials anywhere → warn
-    raise PerfEnvironmentError(
-        "Cadaver has no credentials available.\n"
-        "Provide login/password in ~/.netrc or embed them in ~/.cadaverrc.",
-    )
+    # Case 3: ~/.cadaverrc contains username/password → OK
+    if "username" in cadaverrc_content and "password" in cadaverrc_content:
+        return
+
+    raise PerfEnvironmentError("Cadaver has no credentials available.")
 
 
 def test_cadaver_connection(url: str | None = None) -> None:
