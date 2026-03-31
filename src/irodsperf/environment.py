@@ -359,10 +359,13 @@ def reset_perftest_collection(client: str, collpath: str, session=None) -> None:
             session.collections.create(collpath)
             coll = session.collections.get(collpath)
 
-        for obj in coll.data_objects:
+        objs = list(coll.data_objects)
+        subs = list(coll.subcollections)
+
+        for obj in objs:
             session.data_objects.unlink(obj.path, force=True)
 
-        for sub in coll.subcollections:
+        for sub in subs:
             session.collections.remove(sub.path, recurse=True, force=True)
 
         return
