@@ -22,7 +22,7 @@ output_file    : irodsPerformances.out.pickle
 irodsperf --plot irodsPerformances.out.pickle
 ```
 
-This creates performance tests where a 1GB file and a folder containing 10 files each of size 10KB is uploaded with the three clients.
+This creates performance tests where a 1GB file and a folder containing 10 files each of size 10KB are uploaded with the three clients.
 
 ![Example output](figures/example_res.png)
 
