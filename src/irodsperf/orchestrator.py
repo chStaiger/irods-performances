@@ -197,6 +197,7 @@ def run_all_tests(
             # ---- Run 1: without checksum ----
             print("\tNo checksum tests ...")
             for f in large_files:
+                print(f"Upload {f} to {collpath} ...")
                 result = upload_python(f, collpath, session, checksum=False)
                 results.append(result)
             print("Upload dir ...")
