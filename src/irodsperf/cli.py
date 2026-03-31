@@ -21,15 +21,15 @@ def main():
     parser.add_argument("--plot-out", default="plot.png",
                         help="Filename for saving the plot")
 
-    parser.add_argument("--clients", nargs="+", default=None,
+    parser.add_argument("--clients", nargs="+", default=["python", "icommands", "webdav"],
                         help="Clients to benchmark")
-    parser.add_argument("--sizes", nargs="+", type=int, default=None,
+    parser.add_argument("--sizes", nargs="+", type=int, default=[2, 3, 5],
                         help="Large file sizes in GB")
-    parser.add_argument("--small-files", type=int, default=None,
+    parser.add_argument("--small-files", type=int, default=500,
                         help="Number of small files to generate")
-    parser.add_argument("--small-size", type=int, default=None,
+    parser.add_argument("--small-size", type=int, default=4000,
                         help="Size of each small file in KB")
-    parser.add_argument("--output", default=None,
+    parser.add_argument("--output", default="irodsPerformances.out.pickle",
                         help="Output pickle file")
 
     args = parser.parse_args()
@@ -50,7 +50,7 @@ def main():
     # --- CASE 3: Determine run parameters ---
     # Defaults (used when --all is given OR user doesn't override)
     defaults = {
-        "clients": ["python", "icommands", "cadaver"],
+        "clients": ["python", "icommands", "webdav"],
         "sizes": [2, 3, 5],
         "small_files": 4000,
         "small_size": 500,
@@ -58,11 +58,7 @@ def main():
     }
 
     # If user passed --all, start with defaults
-    if args.all:
-        run_params = defaults.copy()
-    else:
-        # User wants a custom run
-        run_params = defaults.copy()
+    run_params = defaults.copy()
 
     # Override defaults with user-specified values
     if args.clients is not None:
