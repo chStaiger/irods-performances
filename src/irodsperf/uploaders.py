@@ -28,6 +28,16 @@ def _timed(func):
 # Python iRODS client uploader
 # -----------------------------
 
+def _ensure_collection(session, path: str):
+    path = Path(path)
+    current = Path("/")
+    for part in path.parts:
+        current = current / part
+        try:
+            session.collections.get(str(current))
+        except Exception:
+            session.collections.create(str(current))
+
 @_timed
 def upload_python(
     filepath: str | Path,
@@ -62,11 +72,7 @@ def upload_python(
             rel = root.relative_to(filepath)
             target_coll = Path(collpath) / rel
 
-            # Ensure collection exists in iRODS
-            try:
-                session.collections.get(str(target_coll))
-            except Exception:
-                session.collections.create(str(target_coll))
+            _ensure_collection(session, str(target_coll))
 
             # Upload files in this directory
             for fname in files:
