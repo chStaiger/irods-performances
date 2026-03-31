@@ -161,6 +161,7 @@ def run_all_tests(
             results.append(result)
 
             # ---- Run 2: with checksum ----
+            reset_perftest_collection("icommands", "perfTest")
             for f in large_files:
                 result = upload_icommands(f, collpath, checksum=True)
                 results.append(result)
@@ -199,6 +200,7 @@ def run_all_tests(
             results.append(result)
 
             # ---- Run 2: with checksum ----
+            reset_perftest_collection(client, collpath, session)
             for f in large_files:
                 result = upload_python(f, collpath, session, checksum=True)
                 results.append(result)
