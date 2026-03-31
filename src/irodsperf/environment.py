@@ -3,7 +3,7 @@ import subprocess
 from pathlib import Path
 from irods.exception import CAT_INVALID_AUTHENTICATION
 from irods.exception import NetworkException
-
+from irods.exception import CollectionDoesNotExist
 
 class PerfEnvironmentError(Exception):
     """Raised when required external tools or configuration are missing."""
@@ -62,7 +62,7 @@ def ensure_perftest_collection(client: str, collpath: str, session=None) -> None
 
         try:
             session.collections.get(collpath)
-        except irods.exception.CollectionDoesNotExist:
+        except CollectionDoesNotExist:
             session.collections.create(collpath)
 
         return
