@@ -4,6 +4,7 @@ from irods.session import iRODSSession
 
 
 def cleanup_irods(collpath: str, client: str, session: iRODSSession | None = None):
+    """Remove collection from iRODS with icommands, python or webdav."""
     if client == "icommands":
         subprocess.run(["irm", "-r", collpath], check=True)
         subprocess.run(["irmtrash"], check=True)
@@ -18,5 +19,6 @@ def cleanup_irods(collpath: str, client: str, session: iRODSSession | None = Non
 
 
 def cleanup_local(path: str | Path):
+    """Remove local data folder."""
     subprocess.run(["rm", "-rf", str(path)], check=True)
 
