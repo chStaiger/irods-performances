@@ -29,14 +29,10 @@ def _timed(func):
 # -----------------------------
 
 def _ensure_collection(session, path: str):
-    path = Path(path)
-    current = Path("/")
-    for part in path.parts:
-        current = current / part
-        try:
-            session.collections.get(str(current))
-        except Exception:
-            session.collections.create(str(current))
+    try:
+        session.collections.get(str(current))
+    except Exception:
+        session.collections.create(str(current))
 
 @_timed
 def upload_python(
@@ -58,10 +54,7 @@ def upload_python(
         opts[kw.RESC_NAME_KW] = resource
 
     # Ensure target collection exists
-    try:
-        session.collections.get(collpath)
-    except Exception:
-        session.collections.create(collpath)
+    _ensure_collection(session, collpath)
 
     # --- CASE 1: recursive directory upload ---
     if recursive and filepath.is_dir():
