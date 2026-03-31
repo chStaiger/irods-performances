@@ -6,9 +6,27 @@ This project provides an automated framework for benchmarking data‑ingestion p
 
 The figure above describes the server setup for the performance tests with the webdav protocol and the native iRODS client `icommands`.
 
+#### Example run
+
+```
+irodsperf --clients python webdav icommands --sizes 1 --small-files 10 --small-size 10
+
+=== Running benchmark with parameters ===
+clients        : ['python', 'webdav', 'icommands']
+sizes          : [1]
+small_files    : 10
+small_size     : 10
+output_file    : irodsPerformances.out.pickle
+========================================
+
+irodsperf --plot irodsPerformances.out.pickle
+```
+
+![Example output](figueres/example_res.png)
+
 ## Installation and configuration
 
-To run the benchmarking framework, three clients must be configured correctly: **iCommands**, **python‑irodsclient**, and **WebDAV (`cadaver`)**. All clients must authenticate to the same iRODS account and operate inside the same home collection.
+To run the benchmarking framework, three clients must be configured correctly: **iCommands**, **python‑irodsclient**, and **WebDAV (`cadaver`)**. All clients must authenticate to the same iRODS server and operate inside the same home collection.
 
 ### 1. iCommands Configuration
 
@@ -44,7 +62,7 @@ You will need an `irods_environment.json` as described above.
 
 ### 3. WebDAV (`cadaver`)
 
-The WebDAV endpoint must point to the **project root**, not your iRODS home.  
+The WebDAV endpoint must point to the **webdav endopint** of the iRODS server extended by the path to the collection, e.g. your home.  
 
 Create a `~/.cadaverrc` file:
 
@@ -77,7 +95,7 @@ The framework:
 - empties it before each upload batch  
 - removes it after each client completes its tests  
 
-The local temporary data files are created according input parameters and are removed automatically
+The local temporary data files are created according to the input parameters and are removed automatically after the tests.
 No manual cleanup is required.
 
 ## Usage (Python)
